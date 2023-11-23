@@ -1,0 +1,29 @@
+{
+  "schema": "1.0",
+  "type": "whmcs-gateways",
+  "name": "hybula-coinify",
+  "license": "Apache License, Version 2.0 and the Commons Clause Restriction",
+  "category": "payments",
+  "description": {
+    "name": "Hybula Coinify",
+    "tagline": "Integrates the new Coinify API into WHMCS.",
+    "long": "Integrates the new Coinify API into WHMCS allowing you to accept crypto currency payments.",
+    "features": []
+  },
+  "logo": {
+    "filename": "logo.png"
+  },
+  "support": {
+    "homepage": "https:\/\/github.com\/hybula\/whmcs-coinify",
+    "learn_more": "https:\/\/github.com\/hybula\/whmcs-coinify",
+    "email": "opensource@hybula.com",
+    "support_url": "https:\/\/github.com\/hybula\/whmcs-coinify",
+    "docs_url": "https:\/\/github.com\/hybula\/whmcs-coinify"
+  },
+  "authors": [
+    {
+      "name": "Hybula B.V.",
+      "homepage": "https:\/\/www.hybula.com\/"
+    }
+  ]
+}
