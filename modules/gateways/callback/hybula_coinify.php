@@ -12,6 +12,8 @@
  * @copyright  2023 Hybula B.V.
  * @license    https://github.com/hybula/whmcs-coinify/blob/main/LICENSE.md
  * @link       https://github.com/hybula/whmcs-coinify
+ * @see        https://coinify.readme.io/reference/payment-intent-resource#statereason
+ * @see        https://coinify.readme.io/reference/payment-intent-api-webhook-notifications
  */
 
 declare(strict_types=1);
@@ -28,22 +30,28 @@ if (isset($_SERVER['HTTP_X_COINIFY_WEBHOOK_SIGNATURE']) && strlen($_SERVER['HTTP
     if (!$gatewayParams['type']) {
         exit;
     }
+
     $rawBody = file_get_contents('php://input');
     $bodyArray = json_decode($rawBody, true);
+
     try {
         $coinify = new CoinifyHelper($gatewayParams['ApiKey']);
         $coinify->validateSignature($rawBody, $gatewayParams['SharedSecret'], $_SERVER['HTTP_X_COINIFY_WEBHOOK_SIGNATURE']);
         $invoiceId = checkCbInvoiceID($bodyArray['context']['orderId'], 'hybula_coinify');
-        if ($bodyArray['context']['stateReason'] != 'completed_exact_amount') {
+
+        if ($bodyArray['context']['stateReason'] == 'completed_overpaid') {
             localAPI('SendAdminEmail', [
-                'customsubject' => 'Coinify Payment Failed',
-                'custommessage' => 'The gateway could not process this payment invoice '.$invoiceId.' because it received a "'.$bodyArray['context']['stateReason'].'" state, which does not match the "completed_exact_amount" state. Please check your gateway log for more information.',
+                'customsubject' => 'Coinify Overpayment',
+                'custommessage' => 'The gateway could not process the payment for invoice ID '.$invoiceId.' because it received an overpayment of '.$bodyArray['context']['amount'].' '.$bodyArray['context']['currency'].'. Please check your gateway log for more information or log into your Coinify dashboard.',
                 'type' => 'system'
             ]);
             throw new \Exception('Did not receive the exact amount, please check manually in your Coinify dashboard.');
         }
-        addInvoicePayment($invoiceId, $bodyArray['id'], '', 0, 'hybula_coinify');
-        logTransaction('hybula_coinify', $rawBody, 'Successful');
+
+        if ($bodyArray['context']['state'] == 'completed') {
+            addInvoicePayment($invoiceId, $bodyArray['id'], '', 0, 'hybula_coinify');
+            logTransaction('hybula_coinify', $rawBody, 'Successful');
+        }
     } catch (\Exception $e) {
         logTransaction('hybula_coinify', $e->getMessage().' '.$rawBody, 'Unsuccessful');
     }

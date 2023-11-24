@@ -14,7 +14,6 @@
  * @link       https://github.com/hybula/whmcs-coinify
  */
 
-
 declare(strict_types=1);
 
 use Hybula\WHMCS\CoinifyHelper;
