@@ -37,7 +37,7 @@ if (isset($_SERVER['HTTP_X_COINIFY_WEBHOOK_SIGNATURE']) && strlen($_SERVER['HTTP
         if ($bodyArray['context']['stateReason'] != 'completed_exact_amount') {
             localAPI('SendAdminEmail', [
                 'customsubject' => 'Coinify Payment Failed',
-                'custommessage' => 'The gateway could not process this payment because it did not match the "completed_exact_amount" state. Please check your gateway log for more information.',
+                'custommessage' => 'The gateway could not process this payment invoice '.$invoiceId.' because it received a "'.$bodyArray['context']['stateReason'].'" state, which does not match the "completed_exact_amount" state. Please check your gateway log for more information.',
                 'type' => 'system'
             ]);
             throw new \Exception('Did not receive the exact amount, please check manually in your Coinify dashboard.');

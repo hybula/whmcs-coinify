@@ -48,7 +48,7 @@ function hybula_coinify_config(): array
             'Type' => 'text',
             'Size' => '64',
             'Default' => 'production_ or sandbox_...',
-            'Description' => '<br>Request API keys from support as mentioned <a href="https://coinify.readme.io/docs/authentication" target="_blank">here</a>.',
+            'Description' => '<br>Request API keys from support as mentioned <a href="https://coinify.readme.io/docs/authentication" target="_blank">here</a>.'
         ],
         'SharedSecret' => [
             'FriendlyName' => 'Shared Secret',
