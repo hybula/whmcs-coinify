@@ -1,14 +1,20 @@
 {
   "schema": "1.0",
   "type": "whmcs-gateways",
-  "name": "hybula-coinify",
+  "name": "hybula_coinify",
   "license": "Apache License, Version 2.0 and the Commons Clause Restriction",
   "category": "payments",
   "description": {
     "name": "Hybula Coinify",
     "tagline": "Integrates the new Coinify API into WHMCS.",
     "long": "Integrates the new Coinify API into WHMCS allowing you to accept crypto currency payments.",
-    "features": []
+    "features": [
+      "Works with Production or Sandbox environment.",
+      "Marks invoices as paid using the new webhooks.",
+      "Notifies admins in case there is an issue with the payment (e.g. overpayment or underpayment).",
+      "UUIDv4 generation straight from your gateway configuration.",
+      "Simple webhook URL helper."
+    ]
   },
   "logo": {
     "filename": "logo.png"
