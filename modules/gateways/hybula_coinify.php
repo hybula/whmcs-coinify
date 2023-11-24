@@ -9,7 +9,7 @@
  * @category   whmcs
  * @package    whmcs-coinify
  * @author     Hybula Development <development@hybula.com>
- * @copyright  1997-2005 The PHP Group
+ * @copyright  2023 Hybula B.V.
  * @license    https://github.com/hybula/whmcs-coinify/blob/main/LICENSE.md
  * @link       https://github.com/hybula/whmcs-coinify
  */
