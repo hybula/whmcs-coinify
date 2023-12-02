@@ -30,6 +30,11 @@ class CoinifyHelper
     private string $apiKey;
 
     /**
+     * @var string|array Last error stored.
+     */
+    public string|array $lastResponse;
+
+    /**
      * @param  string  $apiKey Coinify API key starting with either production_ or sandbox_.
      */
     public function __construct(string $apiKey)
@@ -76,6 +81,7 @@ class CoinifyHelper
         $curlCode = curl_getinfo($curlHandle, CURLINFO_HTTP_CODE);
         $curlResponseArray = json_decode($curlResponse, true);
         curl_close($curlHandle);
+        $this->lastResponse = $curlResponseArray;
         if ($curlCode == 201 && isset($curlResponseArray['paymentWindowUrl'])) {
             return $curlResponseArray['paymentWindowUrl'];
         } else {
