@@ -12,6 +12,7 @@ Note: This is still under development, but *should* work as expected.
 - Marks invoices as paid using the new webhooks.
 - Notifies admins in case there is an issue with the payment (e.g. overpayment or underpayment).
 - UUIDv4 generation straight from your gateway configuration.
+- Supports multiple currencies (this is passed to API automatically).
 - Simple webhook URL helper.
 
 ### Requirements
