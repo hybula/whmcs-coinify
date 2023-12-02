@@ -31,10 +31,9 @@ if (isset($_SERVER['HTTP_X_COINIFY_WEBHOOK_SIGNATURE']) && strlen($_SERVER['HTTP
         exit;
     }
 
-    $rawBody = file_get_contents('php://input');
-    $bodyArray = json_decode($rawBody, true);
-
     try {
+        $rawBody = file_get_contents('php://input');
+        $bodyArray = json_decode($rawBody, true, 16, JSON_THROW_ON_ERROR);
         $coinify = new CoinifyHelper($gatewayParams['ApiKey']);
         $coinify->validateSignature($rawBody, $gatewayParams['SharedSecret'], $_SERVER['HTTP_X_COINIFY_WEBHOOK_SIGNATURE']);
         $invoiceId = checkCbInvoiceID($bodyArray['context']['orderId'], 'hybula_coinify');
