@@ -53,14 +53,24 @@ function hybula_coinify_config(): array
             'FriendlyName' => 'Shared Secret',
             'Type' => 'text',
             'Size' => '64',
-            'Default' =>  sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x', mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0x0fff) | 0x4000, mt_rand(0, 0x3fff) | 0x8000, mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)),
+            'Default' => sprintf(
+                '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+                mt_rand(0, 0xffff),
+                mt_rand(0, 0xffff),
+                mt_rand(0, 0xffff),
+                mt_rand(0, 0x0fff) | 0x4000,
+                mt_rand(0, 0x3fff) | 0x8000,
+                mt_rand(0, 0xffff),
+                mt_rand(0, 0xffff),
+                mt_rand(0, 0xffff)
+            ),
             'Description' => '<br>Self generated UUID v4 as mentioned <a href="https://coinify.readme.io/docs/webhooks" target="_blank">here</a>. You may use the generated UUID from this input field.'
         ],
         'WebhookUrl' => [
             'FriendlyName' => 'Webhook URL',
             'Type' => 'text',
             'Size' => '64',
-            'Default' =>  Setting::getValue('SystemURL').'/modules/gateways/callback/hybula_coinify.php',
+            'Default' => Setting::getValue('SystemURL').'/modules/gateways/callback/hybula_coinify.php',
             'Description' => '<br>This is your webhook URL, copy this and provide it to Coinify support (this is not a setting).'
         ]
     ];
@@ -84,24 +94,26 @@ function hybula_coinify_link($params): string
         }
     }
 
-    if (!empty($_POST['hybula_coinify_pay'])) {
-        try {
-            $coinify = new CoinifyHelper($params['ApiKey']);
-            $paymentUrl = $coinify->paymentIntent(
-                (float)$params['amount'],
-                $params['currency'],
-                (string)$params['invoiceid'],
-                (string)$params['clientdetails']['owner_user_id'],
-                $params['clientdetails']['email'],
-                $params['returnurl'].'&hybula_coinify_status=success',
-                $params['returnurl'].'&hybula_coinify_status=failure'
-            );
-            header('Location: '.$paymentUrl);
-            exit;
-        } catch (\Exception $e) {
-            return $e->getMessage();
-        }
+    if ($params['amount'] < 10.00) {
+        return '<div class="alert alert-warning" role="alert">This gateway only supports payments larger than <strong>10.00</strong>.</div>';
     }
 
-    return '<form method="POST"><input type="submit" name="hybula_coinify_pay" class="btn btn-primary" value="Pay Now"></form>';
+    try {
+        $coinify = new CoinifyHelper($params['ApiKey']);
+        $paymentUrl = $coinify->paymentIntent(
+            (float)$params['amount'],
+            $params['currency'],
+            (string)$params['invoiceid'],
+            (string)$params['clientdetails']['owner_user_id'],
+            $params['clientdetails']['email'],
+            $params['returnurl'].'&hybula_coinify_status=success',
+            $params['returnurl'].'&hybula_coinify_status=failure'
+        );
+        logTransaction('hybula_coinify', $coinify->lastResponse, 'Successful');
+    } catch (\Exception $e) {
+        logTransaction('hybula_coinify', $coinify->lastResponse, 'Unsuccessful');
+        return $e->getMessage();
+    }
+
+    return '<form method="GET" action="'.$paymentUrl.'"><input type="submit" class="btn btn-primary" value="Pay Now"></form>';
 }
