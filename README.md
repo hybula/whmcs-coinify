@@ -29,5 +29,13 @@ You must supply them with a Shared Secret, this is automatically generated in th
 ### Contribute
 Contributions are welcome in a form of a pull request (PR).
 
+### Sponsored
+This project is developed and sponsored by [Hybula B.V.](https://www.hybula.com/)
+<p>
+  <a href="https://www.hybula.com/">
+    <img src="https://www.hybula.com/assets/hybula/logo/logo-primary.svg" height="40px">
+  </a>
+</p>
+
 ### License
 ```Apache License, Version 2.0 and the Commons Clause Restriction```
