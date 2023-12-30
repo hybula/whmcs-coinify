@@ -14,6 +14,9 @@ Note: This is still under development, but *should* work as expected.
 - UUIDv4 generation straight from your gateway configuration.
 - Supports multiple currencies (this is passed to API automatically).
 - Simple webhook URL helper.
+- Prevents duplicate transactions on invoices.
+- Increased security by validating webhook IPs (https://help.coinify.com/hc/en-us/articles/360019145200-Receiving-callbacks-from-Coinify).
+- Invoice ID to Number conversion option.
 
 ### Requirements
 - PHP 8.x (tested on 8.1.23)
@@ -25,6 +28,7 @@ Note: This is still under development, but *should* work as expected.
 3. Configure the gateway by filling in an API Key and Shared Secret. As of today, Coinify Support will provide you with an API Key.
 You must supply them with a Shared Secret, this is automatically generated in the gateway configuration (copy it from the input field).
 4. Finally provide Coinify with your webhook URL, this is provided in the gateway configuration view.
+5. (Optional) In case you are using Sequential Numbering in WHMCS and you want to see invoicenumbers in Coinify PaymentIntents, enable the `Invoice Conversion` option.
 
 ### Contribute
 Contributions are welcome in a form of a pull request (PR).

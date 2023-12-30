@@ -18,6 +18,7 @@ declare(strict_types=1);
 
 use Hybula\WHMCS\CoinifyHelper;
 use WHMCS\Config\Setting;
+use WHMCS\Database\Capsule;
 
 if (!defined("WHMCS")) {
     die("This file cannot be accessed directly");
@@ -67,11 +68,23 @@ function hybula_coinify_config(): array
             'Description' => '<br>Self generated UUID v4 as mentioned <a href="https://coinify.readme.io/docs/webhooks" target="_blank">here</a>. You may use the generated UUID from this input field.'
         ],
         'WebhookUrl' => [
-            'FriendlyName' => 'Webhook URL',
+            'FriendlyName' => 'Webhook URL<script>document.addEventListener("DOMContentLoaded", function(){ document.querySelector(\'[name="field[WebhookUrl]"]\').disabled = true; });</script>',
             'Type' => 'text',
             'Size' => '64',
             'Default' => Setting::getValue('SystemURL').'/modules/gateways/callback/hybula_coinify.php',
             'Description' => '<br>This is your webhook URL, copy this and provide it to Coinify support (this is not a setting).'
+        ],
+        'useInvoiceNum' => [
+            'FriendlyName' => 'Invoice Conversion',
+            'Type' => 'yesno',
+            'Default' => false,
+            'Description' => 'Convert Invoice ID to Number',
+        ],
+        'checkIpAddress' => [
+            'FriendlyName' => 'Webhook IP Check',
+            'Type' => 'yesno',
+            'Default' => true,
+            'Description' => 'Allow Coinify IPs only',
         ]
     ];
 }
@@ -98,20 +111,32 @@ function hybula_coinify_link($params): string
         return '<div class="alert alert-warning" role="alert">This gateway only supports payments larger than <strong>10.00</strong>.</div>';
     }
 
+    if ($params['amount'] > 15000.00) {
+        return '<div class="alert alert-warning" role="alert">This gateway only supports payments up to <strong>15,000.00</strong>.</div>';
+    }
+
+    $invoice = (string)$params['invoiceid'];
+    if ($params['useInvoiceNum']) {
+        $findInvoice = Capsule::table('tblinvoices')->where('id', $params['invoiceid'])->value('invoicenum');
+        if ($findInvoice) {
+            $invoice = (string)$findInvoice;
+        }
+    }
+
     try {
         $coinify = new CoinifyHelper($params['ApiKey']);
         $paymentUrl = $coinify->paymentIntent(
             (float)$params['amount'],
             $params['currency'],
-            (string)$params['invoiceid'],
+            $invoice,
             (string)$params['clientdetails']['owner_user_id'],
             $params['clientdetails']['email'],
             $params['returnurl'].'&hybula_coinify_status=success',
             $params['returnurl'].'&hybula_coinify_status=failure'
         );
-        logTransaction('hybula_coinify', $coinify->lastResponse, 'Successful');
+        logTransaction('hybula_coinify', json_encode(['invoice' => $invoice, 'api' => $coinify->lastResponse]), 'Successful');
     } catch (\Exception $e) {
-        logTransaction('hybula_coinify', $coinify->lastResponse, 'Unsuccessful');
+        logTransaction('hybula_coinify', json_encode(['invoice' => $invoice, 'api' => $coinify->lastResponse]), 'Unsuccessful');
         return $e->getMessage();
     }
 

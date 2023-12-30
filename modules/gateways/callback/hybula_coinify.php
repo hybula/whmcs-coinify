@@ -19,15 +19,30 @@
 declare(strict_types=1);
 
 use Hybula\WHMCS\CoinifyHelper;
+use WHMCS\Database\Capsule;
 
 require_once __DIR__.'/../../../init.php';
 require_once __DIR__.'/../../../includes/gatewayfunctions.php';
 require_once __DIR__.'/../../../includes/invoicefunctions.php';
 require_once __DIR__.'/../hybula_coinify/CoinifyHelper.php';
 
+const coinifyIpAddressList = [
+    '34.240.144.187',
+    '34.249.67.212',
+    '34.251.158.97',
+    '34.247.148.246',
+    '34.247.148.57',
+    '34.249.123.8',
+];
+
 if (isset($_SERVER['HTTP_X_COINIFY_WEBHOOK_SIGNATURE']) && strlen($_SERVER['HTTP_X_COINIFY_WEBHOOK_SIGNATURE']) == 64) {
     $gatewayParams = getGatewayVariables('hybula_coinify');
     if (!$gatewayParams['type']) {
+        exit;
+    }
+
+    if ($gatewayParams['checkIpAddress'] && !in_array($_SERVER['REMOTE_ADDR'], coinifyIpAddressList)) {
+        logTransaction('hybula_coinify', 'Unknown IP address from webhook: '.$_SERVER['REMOTE_ADDR'], 'Unsuccessful');
         exit;
     }
 
@@ -36,7 +51,13 @@ if (isset($_SERVER['HTTP_X_COINIFY_WEBHOOK_SIGNATURE']) && strlen($_SERVER['HTTP
         $bodyArray = json_decode($rawBody, true, 16, JSON_THROW_ON_ERROR);
         $coinify = new CoinifyHelper($gatewayParams['ApiKey']);
         $coinify->validateSignature($rawBody, $gatewayParams['SharedSecret'], $_SERVER['HTTP_X_COINIFY_WEBHOOK_SIGNATURE']);
-        $invoiceId = checkCbInvoiceID($bodyArray['context']['orderId'], 'hybula_coinify');
+        if ($gatewayParams['useInvoiceNum']) {
+            $invoiceId = Capsule::table('tblinvoices')->where('invoicenum', $bodyArray['context']['orderId'])->value('id');
+            $invoiceId = checkCbInvoiceID($invoiceId, 'hybula_coinify');
+        } else {
+            $invoiceId = checkCbInvoiceID($bodyArray['context']['orderId'], 'hybula_coinify');
+        }
+        checkCbTransID($bodyArray['id']);
 
         if ($bodyArray['context']['stateReason'] == 'completed_overpaid') {
             localAPI('SendAdminEmail', [
@@ -49,9 +70,9 @@ if (isset($_SERVER['HTTP_X_COINIFY_WEBHOOK_SIGNATURE']) && strlen($_SERVER['HTTP
 
         if ($bodyArray['context']['state'] == 'completed') {
             addInvoicePayment($invoiceId, $bodyArray['id'], '', 0, 'hybula_coinify');
-            logTransaction('hybula_coinify', $rawBody, 'Successful');
+            logTransaction('hybula_coinify', json_encode(['invoice' => $bodyArray['context']['orderId'], 'webhookIp' => $_SERVER['REMOTE_ADDR'], 'body' => $bodyArray]), 'Successful');
         }
     } catch (\Exception $e) {
-        logTransaction('hybula_coinify', $e->getMessage().' '.$rawBody, 'Unsuccessful');
+        logTransaction('hybula_coinify', json_encode(['invoice' => $bodyArray['context']['orderId'], 'webhookIp' => $_SERVER['REMOTE_ADDR'], 'exception' => $e->getMessage(), 'body' => $bodyArray]), 'Unsuccessful');
     }
 }
