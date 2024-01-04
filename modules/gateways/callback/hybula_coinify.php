@@ -59,7 +59,7 @@ if (isset($_SERVER['HTTP_X_COINIFY_WEBHOOK_SIGNATURE']) && strlen($_SERVER['HTTP
         }
         checkCbTransID($bodyArray['id']);
 
-        if ($bodyArray['context']['stateReason'] == 'completed_overpaid') {
+        if ($bodyArray['event'] == 'payment-intent.completed' && $bodyArray['context']['state'] == 'completed' && $bodyArray['context']['stateReason'] == 'completed_overpaid') { // We should rely on stateReason, but there is no other way to detect overpayments;
             localAPI('SendAdminEmail', [
                 'customsubject' => 'Coinify Overpayment',
                 'custommessage' => 'The gateway could not process the payment for invoice ID '.$invoiceId.' because it received an overpayment of '.$bodyArray['context']['amount'].' '.$bodyArray['context']['currency'].'. Please check your gateway log for more information or log into your Coinify dashboard.',
@@ -68,11 +68,16 @@ if (isset($_SERVER['HTTP_X_COINIFY_WEBHOOK_SIGNATURE']) && strlen($_SERVER['HTTP
             throw new \Exception('Did not receive the exact amount, please check manually in your Coinify dashboard.');
         }
 
-        if ($bodyArray['context']['state'] == 'completed') {
+        if ($bodyArray['event'] == 'payment-intent.completed' && $bodyArray['context']['state'] == 'completed') {
             addInvoicePayment($invoiceId, $bodyArray['id'], '', 0, 'hybula_coinify');
             logTransaction('hybula_coinify', json_encode(['invoice' => $bodyArray['context']['orderId'], 'webhookIp' => $_SERVER['REMOTE_ADDR'], 'body' => $bodyArray]), 'Successful');
         }
+
+        if ($bodyArray['event'] == 'payment-intent.failed') {
+            throw new \Exception('PaymentIntent Failed ('.$bodyArray['context']['stateReason'].')');
+        }
+
     } catch (\Exception $e) {
-        logTransaction('hybula_coinify', json_encode(['invoice' => $bodyArray['context']['orderId'], 'webhookIp' => $_SERVER['REMOTE_ADDR'], 'exception' => $e->getMessage(), 'body' => $bodyArray]), 'Unsuccessful');
+        logTransaction('hybula_coinify', json_encode(['invoice' => $bodyArray['context']['orderId'], 'webhookIp' => $_SERVER['REMOTE_ADDR'], 'body' => $bodyArray]), $e->getMessage());
     }
 }
