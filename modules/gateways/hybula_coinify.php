@@ -136,8 +136,8 @@ function hybula_coinify_link($params): string
         );
         logTransaction('hybula_coinify', json_encode(['invoice' => $invoice, 'api' => $coinify->lastResponse]), 'Successful');
     } catch (\Exception $e) {
-        logTransaction('hybula_coinify', json_encode(['invoice' => $invoice, 'api' => $coinify->lastResponse]), 'Unsuccessful');
-        return $e->getMessage();
+        logTransaction('hybula_coinify', json_encode(['invoice' => $invoice, 'api' => $coinify->lastResponse]), $e->getMessage());
+        return '<div class="alert alert-danger" role="alert">There was an issue with the payment gateway: '.$e->getMessage().'</div>';
     }
 
     return '<form method="GET" action="'.$paymentUrl.'"><input type="submit" class="btn btn-primary" value="Pay Now"></form>';
