@@ -70,7 +70,7 @@ if (isset($_SERVER['HTTP_X_COINIFY_WEBHOOK_SIGNATURE']) && strlen($_SERVER['HTTP
 
         if ($bodyArray['event'] == 'payment-intent.completed' && $bodyArray['context']['state'] == 'completed') {
             addInvoicePayment($invoiceId, $bodyArray['id'], '', 0, 'hybula_coinify');
-            logTransaction('hybula_coinify', json_encode(['invoice' => $bodyArray['context']['orderId'], 'webhookIp' => $_SERVER['REMOTE_ADDR'], 'body' => $bodyArray]), 'Successful');
+            logTransaction('hybula_coinify', json_encode(['invoice' => $bodyArray['context']['orderId'], 'webhookIp' => $_SERVER['REMOTE_ADDR'], 'api' => $bodyArray]), 'Successful');
         }
 
         if ($bodyArray['event'] == 'payment-intent.failed') {
@@ -78,6 +78,6 @@ if (isset($_SERVER['HTTP_X_COINIFY_WEBHOOK_SIGNATURE']) && strlen($_SERVER['HTTP
         }
 
     } catch (\Exception $e) {
-        logTransaction('hybula_coinify', json_encode(['invoice' => $bodyArray['context']['orderId'], 'webhookIp' => $_SERVER['REMOTE_ADDR'], 'body' => $bodyArray]), $e->getMessage());
+        logTransaction('hybula_coinify', json_encode(['invoice' => $bodyArray['context']['orderId'], 'webhookIp' => $_SERVER['REMOTE_ADDR'], 'api' => $bodyArray]), $e->getMessage());
     }
 }

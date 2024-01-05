@@ -85,7 +85,7 @@ class CoinifyHelper
         if ($curlCode == 201 && isset($curlResponseArray['paymentWindowUrl'])) {
             return $curlResponseArray['paymentWindowUrl'];
         } else {
-            throw new \Exception('There was an issue with the payment processor (Error code received).');
+            throw new \Exception($curlResponseArray['errorMessage'] ?? 'UNKNOWN');
         }
     }
 
