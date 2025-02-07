@@ -68,7 +68,7 @@ function hybula_coinify_config(): array
             'Description' => '<br>Self generated UUID v4 as mentioned <a href="https://coinify.readme.io/docs/webhooks" target="_blank">here</a>. You may use the generated UUID from this input field.'
         ],
         'WebhookUrl' => [
-            'FriendlyName' => 'Webhook URL<script>document.addEventListener("DOMContentLoaded", function(){ document.querySelector(\'[name="field[WebhookUrl]"]\').disabled = true; });</script>',
+            'FriendlyName' => 'Webhook URL<script>document.addEventListener("DOMContentLoaded", function(){ document.querySelector(\'[name="field[WebhookUrl]"]\').readOnly = true; });</script>',
             'Type' => 'text',
             'Size' => '64',
             'Default' => Setting::getValue('SystemURL').'/modules/gateways/callback/hybula_coinify.php',
