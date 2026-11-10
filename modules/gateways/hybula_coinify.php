@@ -123,8 +123,8 @@ function hybula_coinify_link($params): string
         }
     }
 
+    $coinify = new CoinifyHelper($params['ApiKey']);
     try {
-        $coinify = new CoinifyHelper($params['ApiKey']);
         $paymentUrl = $coinify->paymentIntent(
             (float)$params['amount'],
             $params['currency'],

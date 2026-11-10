@@ -32,7 +32,7 @@ class CoinifyHelper
     /**
      * @var string|array Last error stored.
      */
-    public string|array $lastResponse;
+    public string|array $lastResponse = '';
 
     /**
      * @param  string  $apiKey Coinify API key starting with either production_ or sandbox_.
@@ -77,10 +77,20 @@ class CoinifyHelper
             'X-API-KEY: '.$this->apiKey
         ]);
         curl_setopt($curlHandle, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curlHandle, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($curlHandle, CURLOPT_TIMEOUT, 30);
         $curlResponse = curl_exec($curlHandle);
         $curlCode = curl_getinfo($curlHandle, CURLINFO_HTTP_CODE);
+        if ($curlResponse === false) {
+            $curlError = curl_error($curlHandle);
+            $this->lastResponse = $curlError;
+            throw new \Exception('Coinify API unreachable: '.$curlError);
+        }
         $curlResponseArray = json_decode($curlResponse, true);
-        curl_close($curlHandle);
+        if (!is_array($curlResponseArray)) {
+            $this->lastResponse = $curlResponse;
+            throw new \Exception('Invalid response from Coinify API (HTTP '.$curlCode.')');
+        }
         $this->lastResponse = $curlResponseArray;
         if ($curlCode == 201 && isset($curlResponseArray['paymentWindowUrl'])) {
             return $curlResponseArray['paymentWindowUrl'];
